@@ -1,0 +1,40 @@
+name: gohts
+
+services:
+  api:
+    depends_on: 
+      - db
+    build:
+      context: .
+    environment:
+      GOHTS_DB_HOST: ${GOHTS_DB_HOST}
+      GOHTS_DB_PORT: ${GOHTS_DB_PORT}
+      GOHTS_DB_USER: ${GOHTS_DB_USER}
+      GOHTS_DB_PASS: ${GOHTS_DB_PASS}
+      GOHTS_DB_NAME: ${GOHTS_DB_NAME}
+      GOHTS_DB_SCHEMA: ${GOHTS_DB_SCHEMA}
+      GOHTS_DB_SSLMODE: ${GOHTS_DB_SSLMODE}
+      GOHTS_DB_CONNTIMEOUT: ${GOHTS_DB_CONNTIMEOUT}
+      GOHTS_API_PORT: ${GOHTS_API_PORT}
+      GOHTS_API_JWT_SECRET: ${GOHTS_API_JWT_SECRET}
+      GOHTS_API_JWT_EXPIRATION_IN_SECONDS: ${GOHTS_API_JWT_EXPIRATION_IN_SECONDS}
+    ports:
+      - ${GOHTS_API_PORT}:${GOHTS_API_PORT}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/app
+  db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: ${GOHTS_DB_USER}
+      POSTGRES_PASSWORD: ${GOHTS_DB_PASS}
+      POSTGRES_DB: ${GOHTS_DB_NAME}
+      PGDATA: /data/db
+    ports:
+      - ${GOHTS_DB_PORT}:5432
+    volumes:
+      - gohttpstudy:/data/db
+
+volumes:
+  gohttpstudy: 
