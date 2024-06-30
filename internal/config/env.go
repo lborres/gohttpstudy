@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 )
@@ -21,47 +22,53 @@ type Config struct {
 	ServerPort             string
 	JWTSecret              string
 	JWTExpirationInSeconds int64
-
-	// TODO Should this be a pointer? How do I check memory usage?
-	PGConfig *PGConfig
+	PGConfig               *PGConfig
 }
 
 func InitConfig() Config {
 
 	pgconfig := PGConfig{
-		DBHost:        getEnvStr("LOCAL_DB_HOST", "127.0.0.1"),
-		DBPort:        getEnvStr("LOCAL_DB_PORT", "5432"),
-		DBUser:        getEnvStr("LOCAL_DB_USER", ""),
-		DBPassword:    getEnvStr("LOCAL_DB_PASS", ""),
-		DBName:        getEnvStr("LOCAL_DB_NAME", "localdev"),
-		DBSchema:      getEnvStr("LOCAL_DB_SCHEMA", ""),
-		DBSSLMode:     getEnvStr("LOCAL_DB_SSLMODE", "require"),
-		DBConnTimeout: getEnvInt64("LOCAL_DB_CONNTIMEOUT", 0),
+		DBHost:        getEnvStr("GOHTS_DB_HOST", "", true),
+		DBPort:        getEnvStr("GOHTS_DB_PORT", "", true),
+		DBUser:        getEnvStr("GOHTS_DB_USER", "", true),
+		DBPassword:    getEnvStr("GOHTS_DB_PASS", "", true),
+		DBName:        getEnvStr("GOHTS_DB_NAME", "", true),
+		DBSchema:      getEnvStr("GOHTS_DB_SCHEMA", "", false),
+		DBSSLMode:     getEnvStr("GOHTS_DB_SSLMODE", "require", true),
+		DBConnTimeout: getEnvInt64("GOHTS_DB_CONNTIMEOUT", 0, true),
 	}
 
 	return Config{
-		PublicHost:             getEnvStr("PUBLIC_HOST", ""),
-		ServerPort:             getEnvStr("SERVER_PORT", "8080"),
-		JWTSecret:              getEnvStr("JWT_SECRET", ""),
-		JWTExpirationInSeconds: getEnvInt64("JWT_EXPIRATION_IN_SECONDS", 3600*24*7),
+		PublicHost:             getEnvStr("GOHTS_API_PUBLIC_HOST", "", false),
+		ServerPort:             getEnvStr("GOHTS_API_PORT", "8080", true),
+		JWTSecret:              getEnvStr("GOHTS_API_JWT_SECRET", "", true),
+		JWTExpirationInSeconds: getEnvInt64("GOHTS_API_JWT_EXPIRATION_IN_SECONDS", 3600*24*7, false),
 		PGConfig:               &pgconfig,
 	}
 }
 
-func getEnvStr(key, fallback string) string {
+func getEnvStr(key, fallback string, req bool) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
+	} else if !ok && req {
+		log.Fatalf("Env key, %s, does not have a value", key)
 	}
 	return fallback
 }
 
-func getEnvInt64(key string, fallback int64) int64 {
+func getEnvInt64(key string, fallback int64, req bool) int64 {
 	if value, ok := os.LookupEnv(key); ok {
 		i, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
+			if req {
+				log.Fatalf("Env key, %s, does not have a value", key)
+			}
 			return fallback
 		}
 		return i
+	}
+	if req {
+		log.Fatalf("Env key, %s, does not have a value", key)
 	}
 	return fallback
 }

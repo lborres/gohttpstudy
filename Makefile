@@ -1,5 +1,8 @@
-build:
-	@go build -o bin/gohttpstudy.exe cmd/main.go
+# build:
+# 	@go build -o ./bin/gohttpstudy ./cmd/main.go
 
-run:
-	@go run cmd/main.go
+dbuild:
+	@docker compose up --build -d
+
+build:
+	@docker compose up --build
