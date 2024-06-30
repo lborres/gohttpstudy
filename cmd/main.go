@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -9,7 +10,11 @@ import (
 	"github.com/lborres/gohttpstudy/internal/db"
 )
 
-func run(cfg config.Config) error {
+func run(_ context.Context, cfg config.Config) error {
+	// TODO implement graceful shutdown,etc
+	// ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	// defer cancel()
+
 	addr := fmt.Sprintf("%s:%s", cfg.PublicHost, cfg.ServerPort)
 
 	db, err := db.InitDB(*cfg.PGConfig)
@@ -17,7 +22,7 @@ func run(cfg config.Config) error {
 		log.Fatal(err)
 	}
 
-	if err := api.ServeAPI(addr, db); err != nil {
+	if err := api.StartAPIServer(addr, db); err != nil {
 		log.Fatal(err)
 	}
 
@@ -26,7 +31,9 @@ func run(cfg config.Config) error {
 
 func main() {
 	log.Println("Starting HTTP Server")
-	if err := run(config.InitConfig()); err != nil {
+
+	ctx := context.Background()
+	if err := run(ctx, config.InitConfig()); err != nil {
 		log.Fatal(err)
 	}
 }
